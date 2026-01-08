@@ -1,10 +1,5 @@
 <?php
-// gdm_api/api/pregnancy/history.php
-error_reporting(0);
-ini_set('display_errors', 0);
-ob_clean();
-header('Content-Type: application/json');
-
+// gdm_api/api/sugar/history.php
 include_once '../../config/db.php';
 include_once '../../utils/response.php';
 
@@ -17,23 +12,15 @@ if (!isset($_GET['user_id'])) {
 }
 
 $user_id = $_GET['user_id'];
-$type = isset($_GET['type']) ? $_GET['type'] : 'all'; // 'weight', 'kicks', or 'all'
+$limit = isset($_GET['limit']) ? intval($_GET['limit']) : 50;
 
-$query = "SELECT * FROM pregnancy_tracking WHERE user_id = :uid ";
-
-if ($type === 'weight') {
-    $query .= "AND weight_kg IS NOT NULL ";
-} elseif ($type === 'kicks') {
-    $query .= "AND kick_count > 0 ";
-}
-
-$query .= "ORDER BY record_date DESC";
-
+$query = "SELECT * FROM blood_sugar_records WHERE user_id = :uid ORDER BY record_date DESC, record_time DESC LIMIT :limit";
 $stmt = $conn->prepare($query);
 $stmt->bindParam(":uid", $user_id);
+$stmt->bindParam(":limit", $limit, PDO::PARAM_INT);
 $stmt->execute();
 
 $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-sendResponse("success", "Pregnancy history fetched successfully", $records, 200);
+sendResponse("success", "History fetched successfully", $records, 200);
 ?>
